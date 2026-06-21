@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-br">
+<meta charset="utf-8">
+<title>Flappy</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  html,body{margin:0;height:100%;background:#70c5ce;display:grid;place-items:center;font:16px system-ui;touch-action:manipulation}
+  canvas{background:linear-gradient(#70c5ce 70%,#ded895 70%);display:block;max-width:100vw;max-height:100vh;border:2px solid #333}
+  #hud{position:fixed;top:10px;left:0;right:0;text-align:center;color:#fff;font-weight:700;text-shadow:2px 2px 0 #333;pointer-events:none}
+</style>
+<canvas id="g" width="400" height="600"></canvas>
+<div id="hud"></div>
+<script>
+const c=document.getElementById('g'),x=c.getContext('2d'),hud=document.getElementById('hud');
+let bird,pipes,score,best=+localStorage.flappy_best||0,state;
+const G=0.5,J=-8,SP=2.5,GAP=140,W=60;
+function reset(){bird={y:300,v:0};pipes=[{x:c.width,h:200}];score=0;state='ready';}
+function jump(){if(state==='dead'){reset();return}state='play';bird.v=J;}
+addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();jump()}});
+addEventListener('mousedown',jump);addEventListener('touchstart',e=>{e.preventDefault();jump()},{passive:false});
+function step(){
+  if(state==='play'){
+    bird.v+=G;bird.y+=bird.v;
+    pipes.forEach(p=>p.x-=SP);
+    if(pipes[pipes.length-1].x<c.width-200)pipes.push({x:c.width,h:80+Math.random()*(c.height-GAP-200)});
+    pipes=pipes.filter(p=>p.x>-W);
+    // colisão
+    const ground=c.height*0.7;
+    if(bird.y>ground-10||bird.y<10)state='dead';
+    pipes.forEach(p=>{
+      if(60>p.x&&60<p.x+W&&(bird.y<p.h||bird.y>p.h+GAP))state='dead';
+      if(!p.scored&&p.x+W<60){p.scored=true;score++}
+    });
+    if(state==='dead'&&score>best){best=score;localStorage.flappy_best=best}
+  }
+  // render
+  x.clearRect(0,0,c.width,c.height);
+  x.fillStyle='#3a8b3a';
+  pipes.forEach(p=>{x.fillRect(p.x,0,W,p.h);x.fillRect(p.x,p.h+GAP,W,c.height)});
+  x.fillStyle='#f4d35e';x.beginPath();x.arc(60,bird.y,14,0,7);x.fill();
+  x.fillStyle='#333';x.beginPath();x.arc(66,bird.y-3,3,0,7);x.fill();
+  x.fillStyle='#e07b00';x.fillRect(70,bird.y,8,4);
+  hud.innerHTML=state==='ready'?'toque/espaço pra começar':state==='dead'?`💀 ${score} • record ${best}<br><small>toque pra reiniciar</small>`:score;
+  requestAnimationFrame(step);
+}
+reset();step();
+</script>
