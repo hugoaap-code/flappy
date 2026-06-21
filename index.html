@@ -14,7 +14,7 @@
 <script>
 const c=document.getElementById('g'),x=c.getContext('2d'),hud=document.getElementById('hud');
 const G=.27,J=-5.7,GAP=148,W=68,GROUND=520;
-let bird,pipes,score,best=+localStorage.flappy_best||0,state,t=0,speed;
+let bird,pipes,score,best=+localStorage.flappy_best||0,history=JSON.parse(localStorage.flappy_history||'[]'),state,t=0,speed;
 
 function reset(){
   bird={x:82,y:285,v:0,rot:0,wing:0};
@@ -56,6 +56,11 @@ function die(){
   if(state!=='play')return;
   state='dead';bird.v=Math.max(bird.v,1);
   if(score>best){best=score;localStorage.flappy_best=best}
+  if(score){
+    history.push({score,date:new Date().toLocaleDateString('pt-BR')});
+    history.sort((a,b)=>b.score-a.score);history=history.slice(0,5);
+    localStorage.flappy_history=JSON.stringify(history);
+  }
 }
 
 function roundedRect(px,py,w,h,r){
@@ -105,8 +110,9 @@ function ground(){
 }
 function render(){
   background();pipes.forEach(pipe);ground();drawBird();
+  const records=history.map((r,i)=>`${i+1}. ${r.score} — ${r.date}`).join('<br>');
   hud.innerHTML=state==='ready'?'FLAPPY<br><small>toque ou espaço para voar</small>':
-    state==='dead'?`💥 ${score}<br><small>recorde ${best} · toque para reiniciar</small>`:score;
+    state==='dead'?`💥 ${score}<br><small>recorde ${best}<br><br>${records||'sem histórico'}<br><br>toque para reiniciar</small>`:score;
 }
 function loop(){update();render();requestAnimationFrame(loop)}
 reset();loop();
