@@ -13,7 +13,7 @@
 <div id="hud"></div>
 <script>
 const c=document.getElementById('g'),x=c.getContext('2d'),hud=document.getElementById('hud');
-const G=.38,J=-6.8,GAP=148,W=68,GROUND=520;
+const G=.27,J=-5.7,GAP=148,W=68,GROUND=520;
 let bird,pipes,score,best=+localStorage.flappy_best||0,state,t=0,speed;
 
 function reset(){
@@ -36,7 +36,7 @@ function update(){
   t++;
   if(state==='ready') bird.y=285+Math.sin(t/14)*7;
   if(state==='play'){
-    bird.v+=G;bird.y+=bird.v;bird.rot+=(Math.max(-.45,Math.min(1.25,bird.v*.11))-bird.rot)*.14;
+    bird.v=Math.min(bird.v+G,7.2);bird.y+=bird.v;bird.rot+=(Math.max(-.4,Math.min(1.1,bird.v*.09))-bird.rot)*.1;
     speed=2.4+Math.min(score*.035,1.6);
     pipes.forEach(p=>p.x-=speed);
     const last=pipes[pipes.length-1];
@@ -48,7 +48,7 @@ function update(){
     }
     if(bird.y<12||bird.y+14>GROUND) die();
   }else if(state==='dead'&&bird.y<GROUND-17){
-    bird.v=Math.min(bird.v+G*1.25,10);bird.y=Math.min(GROUND-17,bird.y+bird.v);bird.rot=Math.min(1.55,bird.rot+.08);
+    bird.v=Math.min(bird.v+G*1.15,8);bird.y=Math.min(GROUND-17,bird.y+bird.v);bird.rot=Math.min(1.55,bird.rot+.06);
   }
   bird.wing=Math.max(0,bird.wing-.08);
 }
